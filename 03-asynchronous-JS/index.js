@@ -70,7 +70,7 @@ const writeFilePro = (file, data) => {
 
 const getDogPic = async () => {
   try {
-    const data = await readFilePro(`${__dirname}/dog.txt`);
+    const breed = await readFilePro(`${__dirname}/dog.txt`);
 
     const res = await superagent.get(
       `https://dog.ceo/api/breed/${breed}/images/random`
@@ -83,6 +83,23 @@ const getDogPic = async () => {
   } catch (err) {
     console.log(err.message);
   }
+
+  return "Dog pics Fetched";
 };
 
-getDogPic();
+// console.log("Fetching Dog Pics");
+// const res = getDogPic();
+// console.log(res);
+
+// getDogPic().then(() => console.log("Dog pic Fetched"));
+// console.log("Action Finished");
+
+/* IIFE */
+(async () => {
+  try {
+    const data = await getDogPic();
+    console.log(data);
+  } catch (err) {
+    console.log("ERROR: ", err.message);
+  }
+})();
