@@ -1,9 +1,32 @@
-const fs = require('fs');
 const express = require('express');
+const morgan = require('morgan');
+
+const tourRouter = require('./routes/tourRoutes');
+const userRouter = require('./routes/userRoutes');
 
 const app = express();
 
+/* MIDDLEWARE */
+app.use(morgan('dev'));
+
 app.use(express.json());
+
+// CUSTOM MIDDLEWARE
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  next();
+});
+
+/* MOUNTING THE ROUTER */
+app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/users', userRouter);
+
+module.exports = app;
+
+// app.use((req, res, next) => {
+//   console.log('Hello from the middleware 🎈');
+//   next();
+// });
 
 // // Sending a get request
 // // .get('route', routeHnadlerFunction)
@@ -16,110 +39,106 @@ app.use(express.json());
 //   res.send('You can post to this endpoint');
 // });
 
-const tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
-);
-
 /* GET */
-app.get('/api/v1/tours', (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: { tours },
-  });
-});
+// app.get('/api/v1/tours', (req, res) => {
+//   res.status(200).json({
+//     status: 'success',
+//     results: tours.length,
+//     data: { tours },
+//   });
+// });
 
 // Optional Params = /:paramName?
 // app.get('/api/v1/tours/:id?', (req, res) => {})
-app.get('/api/v1/tours/:id', (req, res) => {
-  //   console.log(req.params);
-  const id = req.params.id * 1;
-  const tour = tours.find((el) => el.id === id);
+// app.get('/api/v1/tours/:id', (req, res) => {
+//   //   console.log(req.params);
+//   const id = req.params.id * 1;
+//   const tour = tours.find((el) => el.id === id);
 
-  if (!tour) {
-    res.status(404).json({
-      status: 'Not Found',
-      message: 'The requested tour can not be found',
-    });
-  }
+//   if (!tour) {
+//     res.status(404).json({
+//       status: 'Not Found',
+//       message: 'The requested tour can not be found',
+//     });
+//   }
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
+//   res.status(200).json({
+//     status: 'success',
+//     data: {
+//       tour,
+//     },
+//   });
+// });
 
 /* POST */
-app.post('/api/v1/tours', (req, res) => {
-  //   console.log(req.body);
+// app.post('/api/v1/tours', (req, res) => {
+//   //   console.log(req.body);
 
-  const newId = tours[tours.length - 1].id + 1;
-  const newTour = Object.assign({ id: newId }, req.body);
+//   const newId = tours[tours.length - 1].id + 1;
+//   const newTour = Object.assign({ id: newId }, req.body);
 
-  //   push the new tour to tours array
-  tours.push(newTour);
+//   //   push the new tour to tours array
+//   tours.push(newTour);
 
-  // Update Data in JSON file
-  // 1. specify JSON file path
-  // 2. specify data to be replaced(tours)
-  // 3. callback function
-  fs.writeFile(
-    `${__dirname}/dev-data/data/tours-simple.json`,
-    JSON.stringify(tours),
-    (err) => {
-      res.status(201).json({
-        status: 'success',
-        data: {
-          tour: newTour,
-        },
-      });
-    }
-  );
-});
+//   // Update Data in JSON file
+//   // 1. specify JSON file path
+//   // 2. specify data to be replaced(tours)
+//   // 3. callback function
+//   fs.writeFile(
+//     `${__dirname}/dev-data/data/tours-simple.json`,
+//     JSON.stringify(tours),
+//     (err) => {
+//       res.status(201).json({
+//         status: 'success',
+//         data: {
+//           tour: newTour,
+//         },
+//       });
+//     }
+//   );
+// });
 
 /* PATCH */
-app.patch('/api/v1/tours/:id', (req, res) => {
-  const id = req.params.id * 1;
+// app.patch('/api/v1/tours/:id', (req, res) => {
+//   const id = req.params.id * 1;
 
-  if (id > tours.length) {
-    res.status(404).json({
-      status: 'Not Found',
-      message: 'The requested tour can not be found',
-    });
-  }
+//   if (id > tours.length) {
+//     res.status(404).json({
+//       status: 'Not Found',
+//       message: 'The requested tour can not be found',
+//     });
+//   }
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour: '<Updated tour here...>',
-    },
-  });
-});
+//   res.status(200).json({
+//     status: 'success',
+//     data: {
+//       tour: '<Updated tour here...>',
+//     },
+//   });
+// });
 
 /* DELETE */
-app.delete('/api/v1/tours/:id', (req, res) => {
-  const id = req.params.id * 1;
+// app.delete('/api/v1/tours/:id', (req, res) => {
+//   const id = req.params.id * 1;
 
-  if (id > tours.length) {
-    res.status(404).json({
-      status: 'Not Found',
-      message: 'The requested tour can not be found',
-    });
-  }
+//   if (id > tours.length) {
+//     res.status(404).json({
+//       status: 'Not Found',
+//       message: 'The requested tour can not be found',
+//     });
+//   }
 
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
+//   res.status(204).json({
+//     status: 'success',
+//     data: null,
+//   });
+// });
 
-// Creating a server
-const port = 3000;
-app.listen(port, () => {
-  console.log(`App running on port ${port}`);
-});
+// app.get('/api/v1/tours', getAllTours);
+// app.get('/api/v1/tours/:id', getTour);
+// app.post('/api/v1/tours', createNewTour);
+// app.patch('/api/v1/tours/:id', updateTour);
+// app.delete('/api/v1/tours/:id', deleteTour);
 
 // 200: OK
 // 201: Created
