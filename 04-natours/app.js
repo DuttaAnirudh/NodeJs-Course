@@ -7,9 +7,15 @@ const userRouter = require('./routes/userRoutes');
 const app = express();
 
 /* MIDDLEWARE */
-app.use(morgan('dev'));
+// Run the following code only in development mode
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 
 app.use(express.json());
+
+// Server static files from a folder
+app.use(express.static(`${__dirname}/public`));
 
 // CUSTOM MIDDLEWARE
 app.use((req, res, next) => {
@@ -143,4 +149,5 @@ module.exports = app;
 // 200: OK
 // 201: Created
 // 204: No Content
+// 400: Bad Request
 // 404: Not Found

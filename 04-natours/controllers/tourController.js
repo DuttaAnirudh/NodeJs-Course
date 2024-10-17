@@ -5,6 +5,19 @@ const tours = JSON.parse(
 );
 
 /* ROUTE HANDLERS */
+
+// Checking if the requested tour exists
+exports.checkID = (req, res, next, val) => {
+  // console.log('Tour ID: ', val);
+  if (val > tours.length) {
+    return res.status(404).json({
+      status: 'Not Found',
+      message: 'The requested tour can not be found',
+    });
+  }
+  next();
+};
+
 exports.getAllTours = (req, res) => {
   res.status(200).json({
     status: 'success',
@@ -18,12 +31,12 @@ exports.getTour = (req, res) => {
   const id = req.params.id * 1;
   const tour = tours.find((el) => el.id === id);
 
-  if (!tour) {
-    res.status(404).json({
-      status: 'Not Found',
-      message: 'The requested tour can not be found',
-    });
-  }
+  // if (!tour) {
+  //   res.status(404).json({
+  //     status: 'Not Found',
+  //     message: 'The requested tour can not be found',
+  //   });
+  // }
 
   res.status(200).json({
     status: 'success',
@@ -31,6 +44,24 @@ exports.getTour = (req, res) => {
       tour,
     },
   });
+};
+
+// Middleware: checking if the post request body to create a new tour contains valid 'name' and 'price'.
+exports.checkBody = (req, res, next) => {
+  const {
+    body: { name, price },
+  } = req;
+
+  const validRequest = !!name && !!price;
+
+  if (!validRequest) {
+    return res.status(400).json({
+      status: 'failed',
+      message: 'Bad Request.',
+    });
+  }
+
+  next();
 };
 
 exports.createNewTour = (req, res) => {
@@ -47,7 +78,7 @@ exports.createNewTour = (req, res) => {
   // 2. specify data to be replaced(tours)
   // 3. callback function
   fs.writeFile(
-    `${__dirname}/dev-data/data/tours-simple.json`,
+    `${__dirname}/../dev-data/data/tours-simple.json`,
     JSON.stringify(tours),
     (err) => {
       res.status(201).json({
@@ -61,14 +92,14 @@ exports.createNewTour = (req, res) => {
 };
 
 exports.updateTour = (req, res) => {
-  const id = req.params.id * 1;
+  // const id = req.params.id * 1;
 
-  if (id > tours.length) {
-    res.status(404).json({
-      status: 'Not Found',
-      message: 'The requested tour can not be found',
-    });
-  }
+  // if (id > tours.length) {
+  //   res.status(404).json({
+  //     status: 'Not Found',
+  //     message: 'The requested tour can not be found',
+  //   });
+  // }
 
   res.status(200).json({
     status: 'success',
@@ -79,14 +110,14 @@ exports.updateTour = (req, res) => {
 };
 
 exports.deleteTour = (req, res) => {
-  const id = req.params.id * 1;
+  // const id = req.params.id * 1;
 
-  if (id > tours.length) {
-    res.status(404).json({
-      status: 'Not Found',
-      message: 'The requested tour can not be found',
-    });
-  }
+  // if (id > tours.length) {
+  //   res.status(404).json({
+  //     status: 'Not Found',
+  //     message: 'The requested tour can not be found',
+  //   });
+  // }
 
   res.status(204).json({
     status: 'success',
