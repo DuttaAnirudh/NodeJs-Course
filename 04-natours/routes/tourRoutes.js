@@ -1,12 +1,12 @@
 const express = require('express');
 
-const tourController = require('./../controllers/tourController');
+const tourController = require('../controllers/tourController');
 
 const router = express.Router();
 
 // PARAM MIDDLEWARE
 // router.param(request, response, next, valueOfParam)
-router.param('id', tourController.checkID);
+// router.param('id', tourController.checkID);
 
 router
   .route('/')
