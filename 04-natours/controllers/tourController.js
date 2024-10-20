@@ -19,51 +19,77 @@ const Tour = require('../models/tourModel');
 //   next();
 // };
 
-exports.getAllTours = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    // results: tours.length,
-    // data: { tours },
-  });
-};
+exports.getAllTours = async (req, res) => {
+  try {
+    const tours = await Tour.find();
 
-exports.getTour = (req, res) => {
-  //   console.log(req.params);
-  // const id = req.params.id * 1;
-  // const tour = tours.find((el) => el.id === id);
-
-  // if (!tour) {
-  //   res.status(404).json({
-  //     status: 'Not Found',
-  //     message: 'The requested tour can not be found',
-  //   });
-  // }
-
-  res.status(200).json({
-    status: 'success',
-    // data: {
-    //   tour,
-    // },
-  });
-};
-
-// Middleware: checking if the post request body to create a new tour contains valid 'name' and 'price'.
-exports.checkBody = (req, res, next) => {
-  const {
-    body: { name, price },
-  } = req;
-
-  const validRequest = !!name && !!price;
-
-  if (!validRequest) {
-    return res.status(400).json({
-      status: 'failed',
-      message: 'Bad Request.',
+    res.status(200).json({
+      status: 'success',
+      results: tours.length,
+      data: { tours },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: `There was an error fetching tours`,
     });
   }
-
-  next();
 };
+
+// exports.getTour = (req, res) => {
+//     console.log(req.params);
+//   const id = req.params.id * 1;
+//   const tour = tours.find((el) => el.id === id);
+
+//   if (!tour) {
+//     res.status(404).json({
+//       status: 'Not Found',
+//       message: 'The requested tour can not be found',
+//     });
+//   }
+
+//   res.status(200).json({
+//     status: 'success',
+//     // data: {
+//     //   tour,
+//     // },
+//   });
+// };
+exports.getTour = async (req, res) => {
+  try {
+    const tour = await Tour.findById(req.params.id); // Tour.findOne({_id : req.params.id})
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tour,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: 'There was an error finding tour',
+    });
+  }
+};
+
+// // Middleware: checking if the post request body to create a new tour contains valid 'name' and 'price'.
+// exports.checkBody = (req, res, next) => {
+//   const {
+//     body: { name, price },
+//   } = req;
+
+//   const validRequest = !!name && !!price;
+
+//   if (!validRequest) {
+//     return res.status(400).json({
+//       status: 'failed',
+//       message: 'Bad Request.',
+//     });
+//   }
+
+//   next();
+// };
 
 // exports.createNewTour = (req, res) => {
 //   //   console.log(req.body);
@@ -92,13 +118,22 @@ exports.checkBody = (req, res, next) => {
 //   );
 // };
 
-exports.createNewTour = (req, res) => {
-  res.status(201).json({
-    status: 'success',
-    // data: {
-    //   tour: newTour,
-    // },
-  });
+exports.createTour = async (req, res) => {
+  try {
+    const newTour = await Tour.create(req.body);
+
+    res.status(201).json({
+      status: 'success',
+      data: {
+        tour: newTour,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: `There was an error creating tour.`,
+    });
+  }
 };
 
 exports.updateTour = (req, res) => {
