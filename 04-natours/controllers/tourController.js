@@ -136,36 +136,73 @@ exports.createTour = async (req, res) => {
   }
 };
 
-exports.updateTour = (req, res) => {
-  // const id = req.params.id * 1;
+// exports.updateTour = (req, res) => {
+//   const id = req.params.id * 1;
 
-  // if (id > tours.length) {
-  //   res.status(404).json({
-  //     status: 'Not Found',
-  //     message: 'The requested tour can not be found',
-  //   });
-  // }
+//   if (id > tours.length) {
+//     res.status(404).json({
+//       status: 'Not Found',
+//       message: 'The requested tour can not be found',
+//     });
+//   }
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour: '<Updated tour here...>',
-    },
-  });
+//   res.status(200).json({
+//     status: 'success',
+//     data: {
+//       tour: '<Updated tour here...>',
+//     },
+//   });
+// };
+
+exports.updateTour = async (req, res) => {
+  try {
+    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+      new: true, // new updated document will be returned
+      runValidators: true,
+    });
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tour,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: `There was an error updating tour`,
+    });
+  }
 };
 
-exports.deleteTour = (req, res) => {
-  // const id = req.params.id * 1;
+// exports.deleteTour = (req, res) => {
+//   const id = req.params.id * 1;
 
-  // if (id > tours.length) {
-  //   res.status(404).json({
-  //     status: 'Not Found',
-  //     message: 'The requested tour can not be found',
-  //   });
-  // }
+//   if (id > tours.length) {
+//     res.status(404).json({
+//       status: 'Not Found',
+//       message: 'The requested tour can not be found',
+//     });
+//   }
 
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
+//   res.status(204).json({
+//     status: 'success',
+//     data: null,
+//   });
+// };
+
+exports.deleteTour = async (req, res) => {
+  try {
+    await Tour.findByIdAndDelete(req.params.id);
+
+    res.status(204).json({
+      status: 'success',
+      data: null,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: `There was an error deleting tour`,
+    });
+  }
 };
