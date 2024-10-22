@@ -50,6 +50,7 @@ const tourSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now(), // MongoDB immediatly converts current date in miliseconds into Today's date in readable format
+    select: false, // Hiding this property(createdAt) data from being fetched
   },
   startDates: [Date],
   endDate: [Date],
