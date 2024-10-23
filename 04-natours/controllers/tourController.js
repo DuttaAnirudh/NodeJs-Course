@@ -1,5 +1,6 @@
 // const fs = require('fs');
 const Tour = require('../models/tourModel');
+const APIFeatures = require('../utils/APIFeatures');
 
 // const tours = JSON.parse(
 //   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`),
@@ -7,7 +8,7 @@ const Tour = require('../models/tourModel');
 
 /* ROUTE HANDLERS */
 
-// Checking if the requested tour exists
+// // Checking if the requested tour exists
 // exports.checkID = (req, res, next, val) => {
 //   console.log('Tour ID: ', val);
 //   if (val > tours.length) {
@@ -19,63 +20,117 @@ const Tour = require('../models/tourModel');
 //   next();
 // };
 
+////////////////////////////////////////////
+// Route Controller for "TOP 5 CHEAP TOURS"
+exports.aliasTopTours = (req, res, next) => {
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
+
+  next();
+};
+
+// exports.getAllTours = async (req, res) => {
+//   try {
+//     // 1. BUILD QUERY
+//     let query;
+
+//     /*****************************************/
+//     /* FILTERING */
+//     // A. NORMAL FILTERING
+//     const queryObj = { ...req.query };
+
+//     // Creating an array of queries we want to exclude from getAllTours URL query object
+//     const excludedFields = ['page', 'sort', 'limit', 'fields'];
+
+//     // delete all the excluded fields from the query object
+//     excludedFields.forEach((el) => delete queryObj[el]);
+
+//     // B. ADVANCED FILTERING
+//     // MongoDB Query: {difficulty : 'easy', duration : {$gte : 5}}
+//     // URL Query: { difficulty: 'easy', duration: { gte: '5' }}
+
+//     let queryStr = JSON.stringify(queryObj);
+
+//     // Add a "$" sign to each of the operators in the URL query object
+//     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+
+//     query = Tour.find(JSON.parse(queryStr));
+
+//     // /*****************************************/
+//     // /* SORTING */
+//     if (req.query.sort) {
+//       // Chaining methods to 'query'
+//       // Sorting the response based of query mentioned in the URL
+//       // Sorting based of multiple properties of the obejct data
+//       const sortBy = req.query.sort.split(',').join(' ');
+//       query = query.sort(sortBy);
+//     } else {
+//       query = query.sort('-createdAt');
+//     }
+
+//     /*****************************************/
+//     /* FIELD LIMITING */
+
+//     if (req.query.fields) {
+//       const fields = req.query.fields.split(',').join(' ');
+//       query = query.select(fields);
+//     } else {
+//       query = query.select('-__v'); // adding '-' before a field name excludes them from being selected from the DB
+//     }
+
+//     /*****************************************/
+//     /* PAGINATION */
+//     // ?page=2&limit=10
+//     // query = query.skip(10).limit(10);
+
+//     const page = +req.query.page || 1;
+//     const limit = req.query.limit || 100;
+
+//     const skip = (page - 1) * limit;
+
+//     query = query.skip(skip).limit(limit);
+
+//     if (req.query.page) {
+//       const numTours = await Tour.countDocuments(); // number of documents available in the Tour model database
+//       if (skip >= numTours) {
+//         throw new Error('This page does not exist');
+//       }
+//     }
+
+//     // 2. EXECUTE QUERY
+
+//     const tours = await query;
+
+//     // const tours = await Tour.find()
+//     //   .where('duration')
+//     //   .equals(5)
+//     //   .where('difficulty')
+//     //   .equals('easy');
+
+//     // 3. SEND RESOPONSE
+//     res.status(200).json({
+//       status: 'success',
+//       results: tours.length,
+//       data: { tours },
+//     });
+//   } catch (err) {
+//     res.status(404).json({
+//       status: 'fail',
+//       message: `There was an error fetching tours`,
+//     });
+//   }
+// };
+
 exports.getAllTours = async (req, res) => {
   try {
-    // 1. BUILD QUERY
-    let query;
+    const features = new APIFeatures(Tour.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
 
-    /*****************************************/
-    /* FILTERING */
-    // A. NORMAL FILTERING
-    const queryObj = { ...req.query };
-
-    // Creating an array of queries we want to exclude from getAllTours URL query object
-    const excludedFields = ['page', 'sort', 'limit', ' fields'];
-
-    // delete all the excluded fields from the query object
-    excludedFields.forEach((el) => delete queryObj[el]);
-
-    // B. ADVANCED FILTERING
-    // MongoDB Query: {difficulty : 'easy', duration : {$gte : 5}}
-    // URL Query: { difficulty: 'easy', duration: { gte: '5' }}
-
-    let queryStr = JSON.stringify(queryObj);
-
-    // Add a "$" sign to each of the operators in the URL query object
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-
-    query = Tour.find(JSON.parse(queryStr));
-
-    /*****************************************/
-    /* SORTING */
-    if (req.query.sort) {
-      // Chaining methods to 'query'
-      // Sorting the response based of query mentioned in the URL
-      // Sorting based of multiple properties of the obejct data
-      const sortBy = req.query.sort.split(',').join(' ');
-      query = query.sort(sortBy);
-    } else {
-      query = query.sort('-createdAt');
-    }
-
-    /*****************************************/
-    /* FIELD LIMITING */
-
-    if (req.query.fields) {
-      const fields = req.query.fields.split(',').join(' ');
-      query = query.select(fields);
-    } else {
-      query = query.select('-__v'); // adding '-' before a field name excludes them from being selected from the DB
-    }
-
-    // 2. EXECUTE QUERY
-    const tours = await query;
-
-    // const tours = await Tour.find()
-    //   .where('duration')
-    //   .equals(5)
-    //   .where('difficulty')
-    //   .equals('easy');
+    const tours = await features.query;
 
     // 3. SEND RESOPONSE
     res.status(200).json({
