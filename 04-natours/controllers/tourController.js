@@ -316,3 +316,121 @@ exports.deleteTour = async (req, res) => {
     });
   }
 };
+
+// AGGREAGTION PIPELINE
+// Following is how you aggregate in MongoDB
+// db.orders.aggregate([
+//   { $match: { price: { $lt: 15 } } },
+//   { $lookup: {
+//         from: "inventory",
+//         localField: "item",
+//         foreignField: "sku",
+//         as: "inventory_docs"
+//   } },
+//   { $sort: { price: 1 } },
+// ])
+
+exports.getTourStats = async (req, res) => {
+  try {
+    const stats = await Tour.aggregate([
+      // Stages
+      // A $match stage to filter for documents whose categories
+      // array field contains the element "ratingsAverage"
+      {
+        $match: { ratingsAverage: { $gte: 4.5 } },
+      },
+      {
+        // Allows us to group documets using accumulater
+        $group: {
+          // 1. ID
+          _id: { $toUpper: '$difficulty' }, // statistics will be created for each of the difficulty levels
+          numTours: { $sum: 1 },
+          numRating: { $sum: '$ratingsQuantity' },
+          avgRating: { $avg: '$ratingsAverage' },
+          avgprice: { $avg: '$price' },
+          minPrice: { $min: '$price' },
+          maxPrice: { $max: '$price' },
+        },
+      },
+      // sort: which field we want our stats to sort by.
+      // only field names mentioned in $group can be mentioned in $sort
+      {
+        $sort: { avgprice: 1 }, // "1" : asc && "-1" : desc
+      },
+
+      // We can also repeat stages
+      // { $match: { _id: { $ne: 'EASY' } } }, // excluding all the data which has _id of 'EASY'
+    ]);
+    res.status(200).json({
+      status: 'success',
+      data: {
+        stats,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: `There was an error fetching tour stats`,
+    });
+  }
+};
+
+// AGGREAGTION PIPELINE
+// Getting monthly plan which informs about the tours in a particular year
+exports.getMonthlyPlan = async (req, res) => {
+  try {
+    const year = +req.params.year;
+
+    const plan = await Tour.aggregate([
+      {
+        // "$unwind": deconstructs an array field from the input documents
+        // and then output one document for each element of the
+        // array
+        $unwind: '$startDates',
+      },
+
+      {
+        $match: {
+          startDates: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: '$startDates' },
+          numTourStarts: { $sum: 1 },
+          tours: { $push: '$name' },
+        },
+      },
+      {
+        // To add new fields
+        $addFields: { month: '$_id' },
+      },
+      {
+        // we give each of the field names a 0(zero) or a 1
+        $project: {
+          _id: 0, // This will hide _id property in the response data object
+        },
+      },
+      {
+        $sort: { numTourStarts: -1 },
+      },
+      // {
+      //   // Allows to limit the number of results in response data
+      //   $limit: 6,
+      // },
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: { plan },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: `There was an error fetching monthly plan`,
+    });
+  }
+};
