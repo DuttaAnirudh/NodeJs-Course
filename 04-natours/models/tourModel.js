@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const validator = require('validator');
 
 // Defining a Schema for our data (blueprint)
 const tourSchema = new mongoose.Schema(
@@ -9,6 +10,9 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'A tour must have a name'], // [boolean, errorMessage]
       unique: true,
       trim: true, // remove all the white spaces in the beggining and at the end of the string
+      maxLength: [40, 'A tour name must have less or equal then 40 charactors'],
+      minLength: [8, 'A tour name must have atleast 4 charactors'],
+      // validate: [validator.isAlpha, 'Tour name must only contain characters'],
     },
     duration: {
       type: Number,
@@ -21,10 +25,17 @@ const tourSchema = new mongoose.Schema(
     difficulty: {
       type: String,
       required: [true, 'A tour must have a difficulty level'],
+      // enums are only for Strings
+      enum: {
+        values: ['easy', 'medium', 'difficult'],
+        message: `Difficulty can either be 'easy', 'medium' or 'difficult'`,
+      },
     },
     ratingsAverage: {
       type: Number,
       default: 4.5,
+      min: [1, 'Rating must be above 1.0'], // only for Numbers & Dates
+      max: [5, 'Rating must be below 5.0'], // only for Numbers & Dates
     },
     ratingsQuantity: {
       type: Number,
@@ -34,7 +45,19 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       required: [true, 'A tour must have a price'],
     },
-    priceDiscount: Number,
+    priceDiscount: {
+      type: Number,
+      // Custom Validator : Check if the value of 'price' is less than 'priceDiscount'
+      // custom validators don't work on update
+      validate: {
+        validator: function (val) {
+          // val: current value of the property
+          // false will trigger a validation error
+          return val < this.price;
+        },
+        message: 'Discount price ({VALUE}) should be below regular price', // ({VALUE}) === val
+      },
+    },
     summary: {
       type: String,
       trim: true,
@@ -110,6 +133,16 @@ tourSchema.pre(/^find/, function (next) {
 //   console.log(docs);
 //   next();
 // });
+
+/////////////////////////////////////////////////////////
+// AGGREGATION MIDDLEWARE
+tourSchema.pre('aggregate', function (next) {
+  // adding a new stage ('match') which removes all tours with "secrectTour" propert set to "true"
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  // console.log(this.pipeline()); // "this" points to the current aggregation object
+
+  next();
+});
 
 // Creating a Model out of the Schema
 // always use Uppercase in model names
