@@ -2,6 +2,8 @@ const express = require('express');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 
+const AppError = require('./utils/appError');
+const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 
@@ -28,6 +30,41 @@ app.use((req, res, next) => {
 /* MOUNTING THE ROUTER */
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+
+/****************************************************/
+/****************************************************/
+// ERROR HANDLING
+// (Unknown URL)
+
+// The idea here is :
+// If we are able to reach this part of the code, then it means the request-response cycle was not yet finished at this point in our code
+// because middleware runs in the sequence of where they are defined in the code.
+
+// .all() can be used to handle all the http methods at once(GET, POST, PATCH...)
+/*
+app.all('*', (req, res, next) => {
+  // res.status(404).json({
+  //   status: 'fail',
+  //   message: `Can't find ${req.originalUrl} on this server!`,
+  // });
+
+  const err = new Error(`Can't find ${req.originalUrl} on this server!`);
+  err.status = 'fail';
+  err.statusCode = 404;
+
+  // If 'next()' function recieves an arguement, Express.js will automatically know that there was an error
+  // and thus Express.js will assume whatever was passed as the arguement is the error
+  next(err);
+});
+ */
+
+app.all('*', (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
+/***************************************/
+/* EXPRESS ERROR HANDLING MIDDLEWARE */
+app.use(globalErrorHandler);
 
 module.exports = app;
 
