@@ -24,6 +24,7 @@ app.use(express.static(`${__dirname}/public`));
 // CUSTOM MIDDLEWARE
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
+
   next();
 });
 
@@ -189,4 +190,5 @@ module.exports = app;
 // 201: Created
 // 204: No Content
 // 400: Bad Request
+// 401: Unauthorised
 // 404: Not Found

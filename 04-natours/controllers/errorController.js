@@ -48,6 +48,12 @@ const sendErrorProd = (err, res) => {
   }
 };
 
+const handleJWTError = () =>
+  new AppError('Invalid Token. Please logn again!', 401);
+
+const handleJWTExpiredError = () =>
+  new AppError('Your token has expired. Please login again', 401);
+
 // By specifying 4 parameters, express already knows that the
 // following entire function is an error handling middleware
 module.exports = (err, req, res, next) => {
@@ -75,6 +81,13 @@ module.exports = (err, req, res, next) => {
       error = handleValidationErrorDB(err);
     }
 
+    if (errorName === 'JsonWebTokenError') {
+      error = handleJWTError();
+    }
+
+    if (errorName === 'TokenExpiredError') {
+      error = handleJWTExpiredError();
+    }
     return sendErrorProd(error, res);
   }
 };
