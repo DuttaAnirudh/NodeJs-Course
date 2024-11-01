@@ -16,6 +16,7 @@ exports.signup = catchAsync(async (req, res) => {
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
+    role: req.body.role,
   });
 
   const token = signToken(newUser._id);
@@ -40,7 +41,7 @@ exports.login = catchAsync(async (req, res, next) => {
   // 2. Check if user exixts && password is correct
   const user = await User.findOne({ email }).select('+password');
 
-  console.log(user);
+  // console.log(user);
 
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
@@ -83,7 +84,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   // 4. Check if user changed password after the token was issued
-  if (freshUser.changesPasswordAfter(decoded.iat)) {
+  if (freshUser.changedPasswordAfter(decoded.iat)) {
     return next(
       new AppError('User recently changed password! Please log in again.', 401),
     );
@@ -91,5 +92,19 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   // GRANT ACCESS TO PROTECTED ROUTE
   req.user = freshUser;
-  next();
+  next(); // Goes to getAllTours in tourController
 });
+
+// Wrapper function
+exports.restrictTo =
+  (...roles) =>
+  // return a middleware function
+  (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError('You do not have permission to perfoem this action', 403),
+      );
+    }
+
+    next();
+  };

@@ -37,6 +37,11 @@ const userSchema = new mongoose.Schema({
     },
   },
   passwordChangedAt: Date,
+  role: {
+    type: String,
+    enum: ['user', 'guide', 'lead-guide', 'admin'],
+    default: 'user',
+  },
 });
 
 userSchema.pre('save', async function (next) {
@@ -60,18 +65,18 @@ userSchema.methods.correctPassword = async function (
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
-userSchema.methods.changesPasswordAfter = function (JWTTimestamp) {
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   if (this.passwordChangedAt) {
     const changedTimestamp = parseInt(
       this.passwordChangedAt.getTime() / 1000,
       10,
     );
 
+    // Password changed is the condition when  JWTTimestamp < changedTimestamp
     return JWTTimestamp < changedTimestamp;
   }
 
   // FALSE means NOT changed
-  // False is the condition when  JWTTimestamp < changedTimestamp
   return false;
 };
 
