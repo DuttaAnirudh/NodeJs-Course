@@ -45,6 +45,11 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 
 userSchema.pre('save', async function (next) {
@@ -59,13 +64,21 @@ userSchema.pre('save', async function (next) {
 
 // Update changePasswordAt property for the user
 userSchema.pre('save', function (next) {
-  if (!this.isModified('password') || this.isNew()) return next();
+  if (!this.isModified('password') || this.isNew) return next();
 
-  // sometimes saving to the database is a bit slower than issueing a JWT making
+  // sometimes saving to the database is a bit slower than issuing a JWT making
   // it so that the "passwordChangedAt" timestamp is sometimes set AFTER the JWT has been created
   // because of this the user will not be able to login using the new token
   this.passwordChangedAt = Date.now() - 1000;
 
+  next();
+});
+
+// Fetching only the users with active property set to TRUE
+// Will work for all the queries that start with 'find'
+userSchema.pre(/^find/, function (next) {
+  // this points to the current query
+  this.find({ active: { $ne: false } });
   next();
 });
 
