@@ -1,6 +1,11 @@
 const express = require('express');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp'); // http parameter pollution
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -10,15 +15,48 @@ const userRouter = require('./routes/userRoutes');
 const app = express();
 
 /* MIDDLEWARE */
+// SET Security HTTP Headers
+app.use(helmet());
+
 // Run the following code only in development mode
+// Development loging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-app.use(express.json());
+// Limit requests from same API
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000, // specify time which in this case is "1hr". So user can only send atmost 100requests/hr
+  message: 'Too many requests, please try again in an hour',
+});
+app.use('/api', limiter);
+
+// Body parser, reading data from the body into req.body
+app.use(express.json({ limit: '10kb' })); // limiting data that can be accepted by the server
 app.use(bodyParser.json());
 
-// Server static files from a folder
+// Data Sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Data sanitization againt XSS
+app.use(xss());
+
+// Preventing Http Paramter Pollution
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'ratingsAverage',
+      'ratingsQuantity',
+      'difficulty',
+      'maxGroupSize',
+      'price',
+    ],
+  }),
+);
+
+// Serving static files from a folder
 app.use(express.static(`${__dirname}/public`));
 
 // CUSTOM MIDDLEWARE
