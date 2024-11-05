@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const slugify = require('slugify');
 // const validator = require('validator');
 
+// const User = require('./userModel');
+
 // Defining a Schema for our data (blueprint)
 const tourSchema = new mongoose.Schema(
   {
@@ -84,8 +86,41 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    startLocation: {
+      // GeoJSON - data format used by MongoDB to specify geospatial data
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    // guides: Array, // Embedding
+    // Child Referencing
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User', // establishing references between different datasets in mongoose
+      },
+    ],
   },
   {
+    // VIRTUAL PROPERTIES
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   },
@@ -108,6 +143,17 @@ tourSchema.pre('save', function (next) {
 
   next(); // call next middleware in the stacks : !IMPORTANT
 });
+
+// Embedding Guides to Tours
+// This is good for when a new document is being created
+// But when updating a document, this alone would not work
+// tourSchema.pre('save', async function (next) {
+//   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+
+//   const guides = await Promise.all(guidesPromises);
+
+//   next();
+// });
 
 // POST HOOK
 // tourSchema.post('save', function (doc, next) {
@@ -133,6 +179,17 @@ tourSchema.pre(/^find/, function (next) {
 //   console.log(docs);
 //   next();
 // });
+
+// populating all the tour with guide data,
+// removing -v and passwordChangedAt property from response
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-_v -passwordChangedAt',
+  });
+
+  next();
+});
 
 /////////////////////////////////////////////////////////
 // AGGREGATION MIDDLEWARE

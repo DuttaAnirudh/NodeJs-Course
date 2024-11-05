@@ -31,6 +31,14 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
 });
 
 exports.getTour = catchAsync(async (req, res, next) => {
+  // .populate(propertyNameInSchema) will add guide data based of the IDs mentioned and will return a tour data with actual data of guides rather than just providing guide(user) id
+  // .populate() won't actually fill the guide data in the mongoose DB
+  // It'll add the data when a request is made to getTour tour route
+  // const tour = await Tour.findById(req.params.id).populate({
+  //   path: 'guides',
+  //   select: '-_v -passwordChangedAt',
+  // });
+
   const tour = await Tour.findById(req.params.id); // Tour.findOne({_id : req.params.id})
 
   if (!tour) {
