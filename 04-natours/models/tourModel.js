@@ -131,6 +131,15 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+// VIRTUAL POPULATE
+// Not keeping reviews inside Tour by parent to child referencing
+// But rather adding reviews as virtual properties when someone fetches a tour
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour', // specify the property(field) name of primary db where values are stored
+  localField: '_id', // tour is actully _id in current model(Tour)
+});
+
 /////////////////////////////////////////////////////////
 // DOCUMENT MIDDLEWARE : runs before .save() and .create()
 // but NOT before .inserMany()

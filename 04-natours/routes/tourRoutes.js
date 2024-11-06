@@ -5,10 +5,15 @@ const tourController = require('../controllers/tourController');
 const router = express.Router();
 
 const authController = require('../controllers/authController');
+// const reviewController = require('../controllers/reviewController');
+const reviewRouter = require('./reviewRoutes');
 
 // PARAM MIDDLEWARE
 // router.param(request, response, next, valueOfParam)
 // router.param('id', tourController.checkID);
+
+// If the route is similar to "/:tourId/reviews", then use the Review Router rather than the tour router
+router.use('/:tourId/reviews', reviewRouter); // re-routing to review router
 
 router
   .route('/top-5-cheap')
@@ -32,5 +37,12 @@ router
     authController.restrictTo('admin', 'lead-guide'),
     tourController.deleteTour,
   );
+
+// Nested Routes
+// router.route('/:tourId/reviews').post(
+//   authController.protect,
+//   authController.restrictTo('users'),
+//   reviewController.createReview, // creating reviews from tour route for a particular tour
+// );
 
 module.exports = router;
