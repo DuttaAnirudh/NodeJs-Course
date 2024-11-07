@@ -1,7 +1,6 @@
 const Tour = require('../models/tourModel');
-const APIFeatures = require('../utils/APIFeatures');
-const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
+const factory = require('./handleFactory');
 
 ////////////////////////////////////////////
 // Route Controller for "TOP 5 CHEAP TOURS"
@@ -13,87 +12,93 @@ exports.aliasTopTours = (req, res, next) => {
   next();
 };
 
-exports.getAllTours = catchAsync(async (req, res, next) => {
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
+exports.getAllTours = factory.getAll(Tour);
+// exports.getAllTours = catchAsync(async (req, res, next) => {
+//   const features = new APIFeatures(Tour.find(), req.query)
+//     .filter()
+//     .sort()
+//     .limitFields()
+//     .paginate();
 
-  const tours = await features.query;
+//   const tours = await features.query;
 
-  // 3. SEND RESOPONSE
-  res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: { tours },
-  });
-});
+//   // 3. SEND RESOPONSE
+//   res.status(200).json({
+//     status: 'success',
+//     results: tours.length,
+//     data: { tours },
+//   });
+// });
 
-exports.getTour = catchAsync(async (req, res, next) => {
-  // .populate(propertyNameInSchema) will add guide data based of the IDs mentioned and will return a tour data with actual data of guides rather than just providing guide(user) id
-  // .populate() won't actually fill the guide data in the mongoose DB
-  // It'll add the data when a request is made to getTour tour route
-  // const tour = await Tour.findById(req.params.id).populate({
-  //   path: 'guides',
-  //   select: '-_v -passwordChangedAt',
-  // });
+exports.getTour = factory.getOne(Tour, { path: 'reviews' });
+// exports.getTour = catchAsync(async (req, res, next) => {
+//   // .populate(propertyNameInSchema) will add guide data based of the IDs mentioned and will return a tour data with actual data of guides rather than just providing guide(user) id
+//   // .populate() won't actually fill the guide data in the mongoose DB
+//   // It'll add the data when a request is made to getTour tour route
+//   // const tour = await Tour.findById(req.params.id).populate({
+//   //   path: 'guides',
+//   //   select: '-_v -passwordChangedAt',
+//   // });
 
-  const tour = await Tour.findById(req.params.id).populate('reviews'); // Tour.findOne({_id : req.params.id})
+//   const tour = await Tour.findById(req.params.id).populate('reviews'); // Tour.findOne({_id : req.params.id})
 
-  if (!tour) {
-    return next(new AppError('No tour found. Incorrect ID', 404));
-  }
+//   if (!tour) {
+//     return next(new AppError('No tour found. Incorrect ID', 404));
+//   }
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
+//   res.status(200).json({
+//     status: 'success',
+//     data: {
+//       tour,
+//     },
+//   });
+// });
 
-exports.createTour = catchAsync(async (req, res, next) => {
-  const newTour = await Tour.create(req.body);
+exports.createTour = factory.createOne(Tour);
+// exports.createTour = catchAsync(async (req, res, next) => {
+//   const newTour = await Tour.create(req.body);
 
-  res.status(201).json({
-    status: 'success',
-    data: {
-      tour: newTour,
-    },
-  });
-});
+//   res.status(201).json({
+//     status: 'success',
+//     data: {
+//       tour: newTour,
+//     },
+//   });
+// });
 
-exports.updateTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    new: true, // new updated document will be returned
-    runValidators: true,
-  });
+exports.updateTour = factory.updateOne(Tour);
+// exports.updateTour = catchAsync(async (req, res, next) => {
+//   const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+//     new: true, // new updated document will be returned
+//     runValidators: true,
+//   });
 
-  if (!tour) {
-    return next(new AppError('No tour found. Incorrect ID', 404));
-  }
+//   if (!tour) {
+//     return next(new AppError('No tour found. Incorrect ID', 404));
+//   }
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
+//   res.status(200).json({
+//     status: 'success',
+//     data: {
+//       tour,
+//     },
+//   });
+// });
 
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndDelete(req.params.id);
+exports.deleteTour = factory.deleteOne(Tour);
 
-  if (!tour) {
-    return next(new AppError('No tour found. Incorrect ID', 404));
-  }
+// exports.deleteTour = catchAsync(async (req, res, next) => {
+//   const tour = await Tour.findByIdAndDelete(req.params.id);
 
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
+//   if (!tour) {
+//     return next(new AppError('No tour found. Incorrect ID', 404));
+//   }
+
+//   res.status(204).json({
+//     status: 'success',
+//     data: null,
+//   });
+// });
 
 exports.getTourStats = catchAsync(async (req, res, next) => {
   const stats = await Tour.aggregate([
