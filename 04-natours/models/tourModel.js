@@ -185,7 +185,7 @@ tourSchema.pre('save', function (next) {
 /////////////////////////////////////////////////////////
 // QUERY MIDDLEWARE
 // the 'find' hook will make the following a 'query middleware' and NOT 'document middleware'
-// following code is executed before " await features.quwery " refer-to "getAllTours" in tourController.js
+// following code is executed before " await features.query " refer-to "getAllTours" in tourController.js
 // tourSchema.pre('find', function (next) {
 // "find" | "findOne" | "findOneAndDelete" | "findOneAndUpdate"
 tourSchema.pre(/^find/, function (next) {
