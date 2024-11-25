@@ -26,7 +26,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 /* MIDDLEWARE */
 // SET Security HTTP Headers
-app.use(helmet());
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      'script-src': ["'self'", 'https://unpkg.com'],
+      'img-src': ["'self'", 'data:', 'https://*.tile.openstreetmap.org'],
+    },
+  }),
+);
 
 // Run the following code only in development mode
 // Development loging

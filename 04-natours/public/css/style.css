@@ -572,6 +572,10 @@ body {
   box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.15) !important;
 }
 
+.mapPopup {
+  font-size: 14px;
+}
+
 .section-reviews {
   margin-top: calc(0px - var(--section-rotate));
   padding: calc(5rem + var(--section-rotate)) 0;
