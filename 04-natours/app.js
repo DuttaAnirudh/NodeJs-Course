@@ -50,6 +50,7 @@ const limiter = rateLimit({
   message: 'Too many requests, please try again in an hour',
 });
 app.use('/api', limiter);
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookirParser());
 
 // Body parser, reading data from the body into req.body

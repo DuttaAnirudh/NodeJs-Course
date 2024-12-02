@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-const form = document.querySelector('.form');
+const form = document.querySelector('.form--login');
 const logoutBtn = document.querySelector('.nav__el--logout');
 // ALERTS
 const showAlert = (type, msg) => {
@@ -17,7 +17,6 @@ const hideAlert = () => {
 
 // LOGIN FUNCTIONALITY
 const login = async (email, password) => {
-  console.log(email, password);
   try {
     const res = await axios({
       method: 'POST',
