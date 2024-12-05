@@ -80,7 +80,7 @@ app.use(
 // CUSTOM MIDDLEWARE
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
-  console.log('Cookie', req.cookies);
+  // console.log('Cookie', req.cookies);
   next();
 });
 
